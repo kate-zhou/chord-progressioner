@@ -1,14 +1,16 @@
 //use state is how react remembers things
 import { useState, useEffect } from 'react';
 import './App.css';
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import SortableChord from './Components/SortableChord.js';
+
+import { arrayMove } from '@dnd-kit/sortable';
+import ChordSelector from './Components/ChordSelector.js';
+import ModeToggle from './Components/ModeToggle.js';
+import ChordDisplay from './Components/ChordDisplay.js';
+import Timer from './Components/Timer.js';
+
 
 
 function App() {
-  //Creates a list of available chords for choosing
-  const chords = ['C', 'G', 'Am', 'F', 'D', 'Em', 'A', 'E'];
   //we set selectedChords(array) to nothing, and whenever we call 
   //setSelectedChords it would update selectedChords
   const [selectedChords, setSelectedChords] = useState([]);
@@ -88,24 +90,16 @@ function App() {
   return (
     <div>
       <h1>Chord Practice</h1>
-      <div>
-        {/*chords.map loops through all the chords
+
+      {/*chords.map loops through all the chords
         chord => means for each chord
         key={chord} react's way of tracking elements
-        */}
-        {chords.map(
-          chord =>
-            (<button key={chord} onClick={() => toggleChord(chord)}>{chord}</button>)
-        )
-        }
-      </div>
+      */}
+      <ChordSelector selectedChords={selectedChords} toggleChord={toggleChord} />
+
 
       {/*displays the selected chords by joining them with a comma and space*/}
       <p>Selected: {selectedChords.join(', ')}</p>
-      <div>
-        <button onClick={() => setIsRandom(true)} disabled={isRandom}>Random</button>
-        <button onClick={() => setIsRandom(false)} disabled={!isRandom}>Ordered</button>
-      </div>
       <button onClick={() => {
         if (!isRunning && selectedChords.length > 0) {
           const randomChord = selectedChords[Math.floor(Math.random() * selectedChords.length)];
@@ -116,19 +110,14 @@ function App() {
       }}>
         {isRunning ? 'Stop' : 'Start'}
       </button>
-      {!isRandom && selectedChords.length > 0 && (
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={selectedChords} strategy={horizontalListSortingStrategy}>
-            <div style={{ display: 'flex', marginTop: '10px' }}>
-              {selectedChords.map(chord => (
-                <SortableChord key={chord} chord={chord} />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      )}
-      {isRunning && <p>Time left: {timeLeft}</p>}
-      {currentChord && <h2>Play: {currentChord}</h2>}
+
+      <ModeToggle isRandom={isRandom} 
+      setIsRandom={setIsRandom} 
+      selectedChords={selectedChords} 
+      handleDragEnd={handleDragEnd} />
+
+      <Timer timeLeft={timeLeft} isRunning={isRunning} />
+      <ChordDisplay currentChord={currentChord} />
     </div>
   );
 }
