@@ -1,7 +1,6 @@
 //use state is how react remembers things
 import { useState, useEffect } from 'react';
 import './App.css';
-
 import { arrayMove } from '@dnd-kit/sortable';
 import ChordSelector from './Components/ChordSelector.js';
 import ModeToggle from './Components/ModeToggle.js';
@@ -41,16 +40,27 @@ function App() {
     return () => clearInterval(interval);
   }, [isRunning]);
 
+  const getNextChord = () => {
+    if (isRandom) {
+      return selectedChords[Math.floor(Math.random() * selectedChords.length)];
+    } else {
+      const nextIndex = (currentIndex + 1) % selectedChords.length;
+      setCurrentIndex(nextIndex);
+      return selectedChords[nextIndex];
+    }
+
+  };
+
   //This useEffect runs on time left
   useEffect(() => {
     if (!isRunning) return;
 
     if (timeLeft === 0) {
-      const randomChord = selectedChords[Math.floor(Math.random() * selectedChords.length)];
-      setCurrentChord(randomChord);
+      const next = getNextChord();
+      setCurrentChord(next);
       setTimeLeft(10);
     }
-  }, [timeLeft]);
+  }, [timeLeft, getNextChord]);
 
   //creates a function toggleChord with parameter chord
   const toggleChord = (chord) => {
@@ -65,19 +75,8 @@ function App() {
     }
   };
 
-  const getNextChord = () => {
-    if (isRandom) {
-      return selectedChords[Math.floor(Math.random() * selectedChords.length)];
-    } else {
-      let next;
-      setCurrentIndex(prev => {
-        const nextIndex = (prev + 1) % selectedChords.length;
-        next = nextIndex;
-        return nextIndex;
-      });
-      return selectedChords[next];
-    }
-  };
+
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (active.id !== over.id) {
@@ -100,21 +99,27 @@ function App() {
 
       {/*displays the selected chords by joining them with a comma and space*/}
       <p>Selected: {selectedChords.join(', ')}</p>
+
+      {/* start stop button*/}
       <button onClick={() => {
         if (!isRunning && selectedChords.length > 0) {
-          const randomChord = selectedChords[Math.floor(Math.random() * selectedChords.length)];
-          setCurrentChord(randomChord);
-          setTimeLeft(10);
+          if (isRandom) {
+            setCurrentChord(selectedChords[Math.floor(Math.random() * selectedChords.length)]);
+          } else {
+            setCurrentChord(selectedChords[0]);
+            setCurrentIndex(0);
+          }
         }
         setIsRunning(!isRunning);
       }}>
         {isRunning ? 'Stop' : 'Start'}
       </button>
 
-      <ModeToggle isRandom={isRandom} 
-      setIsRandom={setIsRandom} 
-      selectedChords={selectedChords} 
-      handleDragEnd={handleDragEnd} />
+      {/*toggle button*/}
+      <ModeToggle isRandom={isRandom}
+        setIsRandom={setIsRandom}
+        selectedChords={selectedChords}
+        handleDragEnd={handleDragEnd} />
 
       <Timer timeLeft={timeLeft} isRunning={isRunning} />
       <ChordDisplay currentChord={currentChord} />
